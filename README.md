@@ -212,16 +212,3 @@ User Location → Webhook (n8n)
 5. Start simulation or real-time tracking
 
 ---
-
-## 🙌 Contributors
-
-* Team ChronoPath Navigator
-
----
-
-## 📬 Contact
-
-For collaboration or queries:
-[Add your contact/email]
-
----
