@@ -1,0 +1,993 @@
+{
+  "name": "Personalized Location-Based Heritage Discovery and Engagement System",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "ChronoPath Navigator - Welcome",
+        "formDescription": "Help us personalize your historical journey",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Your Name",
+              "fieldName": "name"
+            },
+            {
+              "fieldLabel": "Nationality",
+              "fieldType": "dropdown",
+              "fieldName": "nationality",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Indian"
+                  },
+                  {
+                    "option": "European"
+                  },
+                  {
+                    "option": "American"
+                  },
+                  {
+                    "option": "Asian"
+                  },
+                  {
+                    "option": "Other"
+                  }
+                ]
+              }
+            },
+            {
+              "fieldLabel": "Age",
+              "fieldType": "number",
+              "fieldName": "age"
+            },
+            {
+              "fieldLabel": "Interests",
+              "fieldType": "checkbox",
+              "fieldName": "interests",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Architecture"
+                  },
+                  {
+                    "option": "Independence Movement"
+                  },
+                  {
+                    "option": "Cultural Heritage"
+                  },
+                  {
+                    "option": "Religious Sites"
+                  },
+                  {
+                    "option": "Art & Literature"
+                  },
+                  {
+                    "option": "Local Cuisine"
+                  },
+                  {
+                    "option": "Traditional Crafts"
+                  }
+                ]
+              }
+            },
+            {
+              "fieldLabel": "Preferred Language",
+              "fieldType": "dropdown",
+              "fieldName": "language_preference",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "English"
+                  },
+                  {
+                    "option": "Hindi"
+                  },
+                  {
+                    "option": "Marathi"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "options": {
+          "appendAttribution": false,
+          "buttonLabel": "Start My Journey"
+        }
+      },
+      "id": "db10778e-3131-4951-8f20-f4c9ccbfa653",
+      "name": "User Onboarding Form",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        256,
+        832
+      ],
+      "webhookId": "812f42c1-c932-449d-a0b9-d9cdb40e020c"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chrono-path-location",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "31ab9c84-c77c-4349-b4db-0921e3507981",
+      "name": "Location Tracker",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        256,
+        480
+      ],
+      "webhookId": "c31274a6-1142-4807-b021-36345a60f449"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "user_id",
+              "value": "={{ $now.toMillis() }}_{{ $json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "name",
+              "value": "={{ $json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "id-3",
+              "name": "nationality",
+              "value": "={{ $json.nationality }}",
+              "type": "string"
+            },
+            {
+              "id": "id-4",
+              "name": "age",
+              "value": "={{ $json.age }}",
+              "type": "number"
+            },
+            {
+              "id": "id-5",
+              "name": "interests",
+              "value": "={{ $json.interests }}",
+              "type": "string"
+            },
+            {
+              "id": "id-6",
+              "name": "language_preference",
+              "value": "={{ $json.language_preference }}",
+              "type": "string"
+            },
+            {
+              "id": "id-7",
+              "name": "created_at",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "16992113-2291-4b84-8ca2-42fa165a785c",
+      "name": "Prepare User Profile",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        480,
+        832
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "VJnmyjpnCc2qonPw",
+          "mode": "id"
+        },
+        "matchType": "=anyCondition",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "user_id",
+              "keyValue": "={{ $json.body.user_id }}"
+            }
+          ]
+        }
+      },
+      "id": "00b05391-b34d-47fd-8551-ba850120dff3",
+      "name": "Get User Profile",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        928,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://overpass-api.de/api/interpreter",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "data",
+              "value": "=[\n  out:json];\n  (\n    node[\"historic\"](around:500,{{ $json.body.latitude }},{{ $json.body.longitude }});\n    node[\"tourism\"=\"attraction\"](around:500,{{ $json.body.latitude }},{{ $json.body.longitude }});\n    node[\"tourism\"=\"museum\"](around:500,{{ $json.body.latitude }},{{ $json.body.longitude }});\n    way[\"historic\"](around:500,{{ $json.body.latitude }},{{ $json.body.longitude }});\n    way[\"tourism\"=\"attraction\"](around:500,{{ $json.body.latitude }},{{ $json.body.longitude }});\n  );\n  out body;\n  >;\n  out skel qt;"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "846f8f62-1cd1-4195-a16b-2aa648d14788",
+      "name": "Fetch Heritage Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        480,
+        576
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {
+          "includeUnpaired": true
+        }
+      },
+      "id": "bea63ff0-c1ee-4205-a346-692f2dfa7c79",
+      "name": "Combine User & Heritage Data",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1152,
+        496
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Location: {{ $json.body.latitude }}, {{ $json.body.longitude }}\n\nUser Profile: {{ $('Get User Profile').item.json }}\n\nHeritage Data: {{ $('Fetch Heritage Data').item.json }}\n\nGenerate an immersive heritage narrative for this location.",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are ChronoPath AI, a Digital Ancestor and heritage guide for Pune, India. Your role is to transform location data into immersive, personalized historical narratives.\n\nYou receive:\n- User profile (nationality, age, interests, language preference)\n- Current location coordinates\n- Heritage data from local APIs\n\nYour tasks:\n1. Analyze the heritage significance of the current location\n2. Adapt complex Indian history into relatable analogies for the user's nationality and background\n3. Create multi-sensory narratives that blend verified historical facts with living culture\n4. Explain WHY routes and paths were historically significant, not just WHAT happened\n5. Generate content in three formats: audio_script (conversational narration), visual_description (for image generation), and text_summary (brief key points)\n\nAdapt your tone and references based on user nationality. For European tourists, use European historical parallels. For American tourists, reference American history. Make the invisible history visible through storytelling.\n\nIf heritage data is unavailable or empty, use your knowledge of Pune's history and the location coordinates to provide a general historical context for the area. Acknowledge when specific heritage data is not available but still provide valuable historical insights."
+        }
+      },
+      "id": "6646d5b3-49cd-4314-bb36-c35f6f8e9568",
+      "name": "Heritage Guide Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1504,
+        496
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "id",
+          "value": "gpt-4o"
+        },
+        "builtInTools": {},
+        "options": {
+          "temperature": 0.7
+        }
+      },
+      "id": "b4e1e334-7487-46ae-b44a-786517de71e3",
+      "name": "OpenAI GPT-4",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1376,
+        720
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "lguYci7IQmfNTfO1",
+          "name": "OpenAI account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Location Tracker').item.json.body.user_id }}",
+        "contextWindowLength": 10
+      },
+      "id": "09a9336e-b74e-4519-bf2a-7e532911188b",
+      "name": "Conversation Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        1504,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n\t\"type\": \"object\",\n\t\"properties\": {\n\t\t\"location_name\": {\n\t\t\t\"type\": \"string\",\n\t\t\t\"description\": \"Name of the heritage location\"\n\t\t},\n\t\t\"historical_significance\": {\n\t\t\t\"type\": \"string\",\n\t\t\t\"description\": \"Why this location matters historically\"\n\t\t},\n\t\t\"audio_script\": {\n\t\t\t\"type\": \"string\",\n\t\t\t\"description\": \"Conversational narration script for text-to-speech (2-3 minutes, engaging storytelling)\"\n\t\t},\n\t\t\"visual_description\": {\n\t\t\t\"type\": \"string\",\n\t\t\t\"description\": \"Detailed description for AI image generation showing historical scene or cultural context\"\n\t\t},\n\t\t\"text_summary\": {\n\t\t\t\"type\": \"string\",\n\t\t\t\"description\": \"Brief key points (3-5 bullet points, not text-heavy)\"\n\t\t},\n\t\t\"cultural_analogy\": {\n\t\t\t\"type\": \"string\",\n\t\t\t\"description\": \"Relatable comparison for the user's nationality\"\n\t\t}\n\t},\n\t\"required\": [\"location_name\", \"historical_significance\", \"audio_script\", \"visual_description\", \"text_summary\", \"cultural_analogy\"]\n}"
+      },
+      "id": "0403b2fc-dbde-4f91-93cd-589d9fa423bf",
+      "name": "Content Structure Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1760,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "toolDescription": "Fetch additional heritage information for a specific landmark or location name in Pune",
+        "url": "https://overpass-api.de/api/interpreter",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "data",
+              "value": "=[out:json];\n(\n  node[\"name\"~\"{{ $fromAI('location_name', 'Name of the heritage site or landmark to look up', 'string') }}\",i];\n  way[\"name\"~\"{{ $fromAI('location_name', 'Name of the heritage site or landmark to look up', 'string') }}\",i];\n);\nout body;\n>;\nout skel qt;"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ceb1bf9e-318e-4430-8d0a-225ee4586b5c",
+      "name": "Additional Heritage Lookup Tool",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [
+        1632,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "input": "={{ $json.output.audio_script }}",
+        "options": {
+          "response_format": "mp3"
+        }
+      },
+      "id": "647475e9-f538-42dc-87fd-0a7f35d0084a",
+      "name": "Generate Audio Narration",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        1968,
+        384
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "DBy4S8WSFKRQ8XsM",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "modelId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "imagen-3.0-generate-001"
+        },
+        "prompt": "={{ $json.output.visual_description }}",
+        "options": {}
+      },
+      "id": "ee618b78-3041-442b-b2c3-c6c999d306a0",
+      "name": "Generate Visual Content",
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        1968,
+        576
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "y3H9J94RiwH5ObDL",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "location_name",
+              "value": "={{ $('Heritage Guide Agent').item.json.output.location_name }}",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "historical_significance",
+              "value": "={{ $('Heritage Guide Agent').item.json.output.historical_significance }}",
+              "type": "string"
+            },
+            {
+              "id": "id-3",
+              "name": "text_summary",
+              "value": "={{ $('Heritage Guide Agent').item.json.output.text_summary }}",
+              "type": "string"
+            },
+            {
+              "id": "id-4",
+              "name": "cultural_analogy",
+              "value": "={{ $('Heritage Guide Agent').item.json.output.cultural_analogy }}",
+              "type": "string"
+            },
+            {
+              "id": "id-5",
+              "name": "audio_url",
+              "value": "={{ $('Generate Audio Narration').item.json.url }}",
+              "type": "string"
+            },
+            {
+              "id": "id-6",
+              "name": "visual_url",
+              "value": "={{ $('Generate Visual Content').item.json.url }}",
+              "type": "string"
+            },
+            {
+              "id": "id-7",
+              "name": "timestamp",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b5e597a0-2934-4f15-936d-92ba6b32ed52",
+      "name": "Prepare Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2192,
+        496
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "36383268-e9d4-4189-9005-b619d2fcb441",
+      "name": "Send to Mobile App",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2416,
+        496
+      ]
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "taFMp7xu9DXoKoM3",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "user_id",
+              "displayName": "user_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "latitude",
+              "displayName": "latitude",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "longitude",
+              "displayName": "longitude",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "location_name",
+              "displayName": "location_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "3e50bb6a-1243-4a01-9c6c-1877e23890d9",
+      "name": "Store Location History",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        2864,
+        496
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "user_id",
+              "value": "={{ $('Location Tracker').item.json.body.user_id }}",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "latitude",
+              "value": "={{ $('Location Tracker').item.json.body.latitude }}",
+              "type": "string"
+            },
+            {
+              "id": "id-3",
+              "name": "longitude",
+              "value": "={{ $('Location Tracker').item.json.body.longitude }}",
+              "type": "string"
+            },
+            {
+              "id": "id-4",
+              "name": "location_name",
+              "value": "={{ $json.location_name }}",
+              "type": "string"
+            },
+            {
+              "id": "id-5",
+              "name": "timestamp",
+              "value": "={{ $json.timestamp }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "dca682c5-fe17-4442-9741-48e64d7be43f",
+      "name": "Prepare Location Log",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2640,
+        496
+      ]
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "VJnmyjpnCc2qonPw"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "nationality",
+              "displayName": "nationality",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "age",
+              "displayName": "age",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "interests",
+              "displayName": "interests",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "language_preference",
+              "displayName": "language_preference",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "user_id",
+              "displayName": "user_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "a383285f-fe87-45e9-9b6d-cd5b9f3682fa",
+      "name": "Store User Profile",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        704,
+        832
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "id-1",
+              "leftValue": "={{ $json.elements }}",
+              "operator": {
+                "type": "array",
+                "operation": "exists"
+              }
+            },
+            {
+              "id": "id-2",
+              "leftValue": "={{ $json.elements }}",
+              "operator": {
+                "type": "array",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "d33ae79f-d04c-4a60-b01f-fe0200974808",
+      "name": "Check Heritage Data Success",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        704,
+        576
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "elements",
+              "value": "[]",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "87a71939-f434-478c-8faa-b05bf42f0f5a",
+      "name": "Empty Heritage Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        928,
+        496
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "User Onboarding Form": {
+      "main": [
+        [
+          {
+            "node": "Prepare User Profile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare User Profile": {
+      "main": [
+        [
+          {
+            "node": "Store User Profile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Location Tracker": {
+      "main": [
+        [
+          {
+            "node": "Get User Profile",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Heritage Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get User Profile": {
+      "main": [
+        [
+          {
+            "node": "Combine User & Heritage Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Heritage Data": {
+      "main": [
+        [
+          {
+            "node": "Check Heritage Data Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combine User & Heritage Data": {
+      "main": [
+        [
+          {
+            "node": "Heritage Guide Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI GPT-4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Heritage Guide Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Conversation Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Heritage Guide Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Content Structure Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Heritage Guide Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Additional Heritage Lookup Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "Heritage Guide Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Heritage Guide Agent": {
+      "main": [
+        [
+          {
+            "node": "Generate Audio Narration",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Generate Visual Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Audio Narration": {
+      "main": [
+        [
+          {
+            "node": "Prepare Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Visual Content": {
+      "main": [
+        [
+          {
+            "node": "Prepare Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Response": {
+      "main": [
+        [
+          {
+            "node": "Send to Mobile App",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Location Log": {
+      "main": [
+        [
+          {
+            "node": "Store Location History",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send to Mobile App": {
+      "main": [
+        [
+          {
+            "node": "Prepare Location Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Heritage Data Success": {
+      "main": [
+        [
+          {
+            "node": "Combine User & Heritage Data",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "Empty Heritage Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Empty Heritage Data": {
+      "main": [
+        [
+          {
+            "node": "Combine User & Heritage Data",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "3391c3d6-7f3b-4ef2-a2d9-7e51d1e67c12",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "90ab08429493b914c58e3768a2549a061263decf5e867a4a1dd41de9edc73b2e"
+  },
+  "id": "RSuc3GAX92pllIw1",
+  "tags": []
+}
