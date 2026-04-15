@@ -155,7 +155,7 @@ User Location → Webhook (n8n)
               ↓
        Store User History
 ```
-
+<img width="1609" height="762" alt="image" src="https://github.com/user-attachments/assets/580d29b6-a3cd-474d-9a96-96ae5e86a844" />
 ---
 
 ## 🔐 Security & Privacy
