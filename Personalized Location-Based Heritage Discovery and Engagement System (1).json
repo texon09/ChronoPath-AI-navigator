@@ -1,0 +1,1292 @@
+{
+  "name": "Personalized Location-Based Heritage Discovery and Engagement System",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "ChronoPath Navigator - Welcome",
+        "formDescription": "Help us personalize your historical journey",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Your Name",
+              "fieldName": "name"
+            },
+            {
+              "fieldLabel": "Nationality",
+              "fieldType": "dropdown",
+              "fieldName": "nationality",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Indian"
+                  },
+                  {
+                    "option": "European"
+                  },
+                  {
+                    "option": "American"
+                  },
+                  {
+                    "option": "Asian"
+                  },
+                  {
+                    "option": "Other"
+                  }
+                ]
+              }
+            },
+            {
+              "fieldLabel": "Age",
+              "fieldType": "number",
+              "fieldName": "age"
+            },
+            {
+              "fieldLabel": "Interests",
+              "fieldType": "checkbox",
+              "fieldName": "interests",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Architecture"
+                  },
+                  {
+                    "option": "Independence Movement"
+                  },
+                  {
+                    "option": "Cultural Heritage"
+                  },
+                  {
+                    "option": "Religious Sites"
+                  },
+                  {
+                    "option": "Art & Literature"
+                  },
+                  {
+                    "option": "Local Cuisine"
+                  },
+                  {
+                    "option": "Traditional Crafts"
+                  }
+                ]
+              }
+            },
+            {
+              "fieldLabel": "Preferred Language",
+              "fieldType": "dropdown",
+              "fieldName": "language_preference",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "English"
+                  },
+                  {
+                    "option": "Hindi"
+                  },
+                  {
+                    "option": "Marathi"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "options": {
+          "appendAttribution": false,
+          "buttonLabel": "Start My Journey"
+        }
+      },
+      "id": "db10778e-3131-4951-8f20-f4c9ccbfa653",
+      "name": "User Onboarding Form",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        256,
+        1008
+      ],
+      "webhookId": "98ecaabd-e4d6-4be1-bca4-aea1c4e570d7"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chrono-path-location",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "31ab9c84-c77c-4349-b4db-0921e3507981",
+      "name": "Location Tracker",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        256,
+        496
+      ],
+      "webhookId": "df92fabe-1355-42f1-ba1e-f416692663cf"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "user_id",
+              "value": "={{ $now.toMillis() }}_{{ $json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "name",
+              "value": "={{ $json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "id-3",
+              "name": "nationality",
+              "value": "={{ $json.nationality }}",
+              "type": "string"
+            },
+            {
+              "id": "id-4",
+              "name": "age",
+              "value": "={{ $json.age }}",
+              "type": "number"
+            },
+            {
+              "id": "id-5",
+              "name": "interests",
+              "value": "={{ $json.interests }}",
+              "type": "string"
+            },
+            {
+              "id": "id-6",
+              "name": "language_preference",
+              "value": "={{ $json.language_preference }}",
+              "type": "string"
+            },
+            {
+              "id": "id-7",
+              "name": "created_at",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "16992113-2291-4b84-8ca2-42fa165a785c",
+      "name": "Prepare User Profile",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        480,
+        1008
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "dTr3oJwPr69CeRiM",
+          "mode": "id"
+        },
+        "matchType": "=anyCondition",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "user_id",
+              "keyValue": "={{ $json.body.user_id }}"
+            }
+          ]
+        }
+      },
+      "id": "00b05391-b34d-47fd-8551-ba850120dff3",
+      "name": "Get User Profile",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1376,
+        496
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://overpass-api.de/api/interpreter",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "data",
+              "value": "=[\n  out:json];\n  (\n    node[\"historic\"](around:500,{{ $json.body.latitude }},{{ $json.body.longitude }});\n    node[\"tourism\"=\"attraction\"](around:500,{{ $json.body.latitude }},{{ $json.body.longitude }});\n    node[\"tourism\"=\"museum\"](around:500,{{ $json.body.latitude }},{{ $json.body.longitude }});\n    way[\"historic\"](around:500,{{ $json.body.latitude }},{{ $json.body.longitude }});\n    way[\"tourism\"=\"attraction\"](around:500,{{ $json.body.latitude }},{{ $json.body.longitude }});\n  );\n  out body;\n  >;\n  out skel qt;"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "id": "846f8f62-1cd1-4195-a16b-2aa648d14788",
+      "name": "Fetch Heritage Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        480,
+        712
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "36383268-e9d4-4189-9005-b619d2fcb441",
+      "name": "Send to Mobile App",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        3168,
+        376
+      ]
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "92bMJBKwGjAAURmq",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "user_id",
+              "displayName": "user_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "latitude",
+              "displayName": "latitude",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "longitude",
+              "displayName": "longitude",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "location_name",
+              "displayName": "location_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "3e50bb6a-1243-4a01-9c6c-1877e23890d9",
+      "name": "Store Location History",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        3392,
+        592
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "user_id",
+              "value": "={{ $('Location Tracker').item.json.body.user_id }}",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "latitude",
+              "value": "={{ $('Location Tracker').item.json.body.latitude }}",
+              "type": "string"
+            },
+            {
+              "id": "id-3",
+              "name": "longitude",
+              "value": "={{ $('Location Tracker').item.json.body.longitude }}",
+              "type": "string"
+            },
+            {
+              "id": "id-4",
+              "name": "location_name",
+              "value": "={{ $('Parse Gemini Response').item.json.place }}",
+              "type": "string"
+            },
+            {
+              "id": "id-5",
+              "name": "timestamp",
+              "value": "={{ $json.timestamp }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "dca682c5-fe17-4442-9741-48e64d7be43f",
+      "name": "Prepare Location Log",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3168,
+        592
+      ]
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "dTr3oJwPr69CeRiM",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "nationality",
+              "displayName": "nationality",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "age",
+              "displayName": "age",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "interests",
+              "displayName": "interests",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "language_preference",
+              "displayName": "language_preference",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "user_id",
+              "displayName": "user_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "a383285f-fe87-45e9-9b6d-cd5b9f3682fa",
+      "name": "Store User Profile",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        704,
+        1008
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "id-1",
+              "leftValue": "={{ $json.elements }}",
+              "operator": {
+                "type": "array",
+                "operation": "exists"
+              }
+            },
+            {
+              "id": "id-2",
+              "leftValue": "={{ $json.elements }}",
+              "operator": {
+                "type": "array",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "d33ae79f-d04c-4a60-b01f-fe0200974808",
+      "name": "Check Heritage Data Success",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        704,
+        712
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "elements",
+              "value": "[]",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "87a71939-f434-478c-8faa-b05bf42f0f5a",
+      "name": "Empty Heritage Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        928,
+        784
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const lat = parseFloat($('Location Tracker').item.json.body.latitude);\nconst lng = parseFloat($('Location Tracker').item.json.body.longitude);\nconst heritageData = $input.item.json.elements || [];\n\n// Known landmarks in Pune with coordinates\nconst landmarks = [\n  { name: 'Shaniwar Wada', lat: 18.5196, lng: 73.8553, radius: 200, type: 'historical_incident', significance: 'Seat of Peshwa rulers, site of 1828 fire tragedy', timeline: '1732-1818', cultural_relevance: 'Symbol of Maratha Empire power' },\n  { name: 'Aga Khan Palace', lat: 18.5515, lng: 73.9015, radius: 150, type: 'location', significance: 'Prison for Mahatma Gandhi during Quit India Movement', timeline: '1942-1944', cultural_relevance: 'Independence movement memorial' },\n  { name: 'Sinhagad Fort', lat: 18.3664, lng: 73.7556, radius: 300, type: 'location', significance: 'Site of Battle of Sinhagad (1670)', timeline: '2000+ years old', cultural_relevance: 'Maratha military heritage' },\n  { name: 'Dagdusheth Halwai Ganpati Temple', lat: 18.5167, lng: 73.8560, radius: 100, type: 'location', significance: 'Cultural and religious center since 1893', timeline: '1893-present', cultural_relevance: 'Living tradition of Ganesh worship' },\n  { name: 'Pataleshwar Cave Temple', lat: 18.5074, lng: 73.8436, radius: 80, type: 'location', significance: '8th century rock-cut temple', timeline: '8th century CE', cultural_relevance: 'Ancient Rashtrakuta architecture' }\n];\n\n// Calculate distance using Haversine formula\nfunction getDistance(lat1, lon1, lat2, lon2) {\n  const R = 6371e3; // Earth radius in meters\n  const φ1 = lat1 * Math.PI/180;\n  const φ2 = lat2 * Math.PI/180;\n  const Δφ = (lat2-lat1) * Math.PI/180;\n  const Δλ = (lon2-lon1) * Math.PI/180;\n  const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +\n          Math.cos(φ1) * Math.cos(φ2) *\n          Math.sin(Δλ/2) * Math.sin(Δλ/2);\n  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));\n  return R * c;\n}\n\n// Find nearest landmark\nlet nearestLandmark = null;\nlet minDistance = Infinity;\n\nfor (const landmark of landmarks) {\n  const distance = getDistance(lat, lng, landmark.lat, landmark.lng);\n  if (distance < landmark.radius && distance < minDistance) {\n    minDistance = distance;\n    nearestLandmark = landmark;\n  }\n}\n\n// Determine trigger type and context\nlet result = {\n  place: nearestLandmark ? nearestLandmark.name : 'Unknown Location',\n  trigger_type: nearestLandmark ? nearestLandmark.type : 'location',\n  distance_meters: Math.round(minDistance),\n  within_zone: nearestLandmark !== null,\n  significance: nearestLandmark ? nearestLandmark.significance : 'Exploring Pune',\n  timeline: nearestLandmark ? nearestLandmark.timeline : 'Modern era',\n  cultural_relevance: nearestLandmark ? nearestLandmark.cultural_relevance : 'Contemporary urban area',\n  coordinates: { lat, lng },\n  heritage_elements_found: heritageData.length\n};\n\nreturn [result];"
+      },
+      "id": "c6367c6b-8358-4419-93a5-633ecd055deb",
+      "name": "Geo-Intelligence Engine",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1152,
+        712
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "92bMJBKwGjAAURmq",
+          "mode": "id"
+        },
+        "matchType": "=anyCondition",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "user_id",
+              "keyValue": "={{ $json.body.user_id }}"
+            }
+          ]
+        },
+        "returnAll": true,
+        "orderBy": true
+      },
+      "id": "51dd7b84-30d9-47e0-8cf9-b6e2d17498d0",
+      "name": "Get User Journey History",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1376,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "place",
+              "value": "={{ $('Geo-Intelligence Engine').item.json.place }}",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "trigger_type",
+              "value": "={{ $('Geo-Intelligence Engine').item.json.trigger_type }}",
+              "type": "string"
+            },
+            {
+              "id": "id-3",
+              "name": "significance",
+              "value": "={{ $('Geo-Intelligence Engine').item.json.significance }}",
+              "type": "string"
+            },
+            {
+              "id": "id-4",
+              "name": "timeline",
+              "value": "={{ $('Geo-Intelligence Engine').item.json.timeline }}",
+              "type": "string"
+            },
+            {
+              "id": "id-5",
+              "name": "cultural_relevance",
+              "value": "={{ $('Geo-Intelligence Engine').item.json.cultural_relevance }}",
+              "type": "string"
+            },
+            {
+              "id": "id-6",
+              "name": "within_zone",
+              "value": "={{ $('Geo-Intelligence Engine').item.json.within_zone }}",
+              "type": "boolean"
+            },
+            {
+              "id": "id-7",
+              "name": "heritage_data",
+              "value": "={{ JSON.stringify($('Check Heritage Data Success').item.json) }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "62a73727-8deb-4bb2-b9d9-601cf09bb99e",
+      "name": "Enrich Historical Context",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1376,
+        712
+      ]
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "id": "e9f7ab0c-e2b1-4540-8394-6a8d0a7cf8ed",
+      "name": "Merge Journey Context",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1600,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "id-1",
+              "leftValue": "={{ $json.body?.network || $('Location Tracker').first().json.body.network }}",
+              "rightValue": "good",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "5877d95f-04ce-40ba-908d-9346b2a8f827",
+      "name": "Network Quality Check",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2496,
+        328
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "Key",
+              "value": "AIzaSyA8dBecPYzapzAYcg3cnxlMtSBEyK3QrfI"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "baccbc5d-ccae-4e70-ba45-da1def6b1a0d",
+      "name": "Gemini Story Generation",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2048,
+        664
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.item.json;\n\n// Extract the generated content from Gemini response\nlet parsedContent;\ntry {\n  const text = response.candidates[0].content.parts[0].text;\n  parsedContent = JSON.parse(text);\n} catch (error) {\n  // Fallback if parsing fails\n  parsedContent = {\n    story: 'Welcome to ' + $('Enrich Historical Context').item.json.place + '. ' + $('Enrich Historical Context').item.json.significance,\n    reasoning: $('Enrich Historical Context').item.json.cultural_relevance,\n    cultural_bridge: 'This location holds deep historical significance.',\n    historical_incident: 'Explore the rich heritage of this area.'\n  };\n}\n\nreturn [{\n  json: {\n    place: $('Enrich Historical Context').item.json.place,\n    story: parsedContent.story,\n    reasoning: parsedContent.reasoning,\n    cultural_bridge: parsedContent.cultural_bridge,\n    historical_incident: parsedContent.historical_incident,\n    trigger_type: $('Enrich Historical Context').item.json.trigger_type,\n    coordinates: {\n      lat: $('Location Tracker').item.json.body.latitude,\n      lng: $('Location Tracker').item.json.body.longitude\n    }\n  }\n}];"
+      },
+      "id": "a86593f3-1cc0-463a-9c66-0bbe967505f2",
+      "name": "Parse Gemini Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2272,
+        664
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "place",
+              "value": "={{ $('Parse Gemini Response').item.json.place }}",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "story",
+              "value": "={{ $('Parse Gemini Response').item.json.story }}",
+              "type": "string"
+            },
+            {
+              "id": "id-3",
+              "name": "reasoning",
+              "value": "={{ $('Parse Gemini Response').item.json.reasoning }}",
+              "type": "string"
+            },
+            {
+              "id": "id-4",
+              "name": "cultural_bridge",
+              "value": "={{ $('Parse Gemini Response').item.json.cultural_bridge }}",
+              "type": "string"
+            },
+            {
+              "id": "id-5",
+              "name": "historical_incident",
+              "value": "={{ $('Parse Gemini Response').item.json.historical_incident }}",
+              "type": "string"
+            },
+            {
+              "id": "id-6",
+              "name": "mode",
+              "value": "full",
+              "type": "string"
+            },
+            {
+              "id": "id-7",
+              "name": "audio_url",
+              "value": "={{ $json.audioContent || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "id-8",
+              "name": "images",
+              "value": "={{ JSON.stringify([$json.url] || []) }}",
+              "type": "array"
+            },
+            {
+              "id": "id-9",
+              "name": "timestamp",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "10659c06-6264-4732-b705-7157bd7b2851",
+      "name": "Format Full Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2944,
+        664
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "place",
+              "value": "={{ $('Parse Gemini Response').item.json.place }}",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "story",
+              "value": "={{ $('Parse Gemini Response').item.json.story.substring(0, 300) + '...' }}",
+              "type": "string"
+            },
+            {
+              "id": "id-3",
+              "name": "reasoning",
+              "value": "={{ $('Parse Gemini Response').item.json.reasoning }}",
+              "type": "string"
+            },
+            {
+              "id": "id-4",
+              "name": "cultural_bridge",
+              "value": "={{ $('Parse Gemini Response').item.json.cultural_bridge }}",
+              "type": "string"
+            },
+            {
+              "id": "id-5",
+              "name": "historical_incident",
+              "value": "Offline mode - full content available when connected",
+              "type": "string"
+            },
+            {
+              "id": "id-6",
+              "name": "mode",
+              "value": "lite",
+              "type": "string"
+            },
+            {
+              "id": "id-7",
+              "name": "audio_url",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "id-8",
+              "name": "images",
+              "value": "[]",
+              "type": "array"
+            },
+            {
+              "id": "id-9",
+              "name": "timestamp",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "23b6c8c3-57b0-4103-b6c2-0ce2b43e8006",
+      "name": "Format Lite Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2944,
+        328
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://texttospeech.googleapis.com/v1/text:synthesize",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "={{ \"googlePalmApi\" }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"input\": { \"text\": $json.story }, \"voice\": { \"languageCode\": \"en-US\", \"name\": \"en-US-Neural2-F\" }, \"audioConfig\": { \"audioEncoding\": \"MP3\" } } }}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "3f7ac85b-d922-42fd-af10-31f86c01eb3b",
+      "name": "Generate Audio Narration (Gemini TTS)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2496,
+        568
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.item.json;\n\n// Extract the generated content from Gemini response\nlet parsedContent;\ntry {\n  const text = response.candidates[0].content.parts[0].text;\n  parsedContent = JSON.parse(text);\n} catch (error) {\n  // Fallback if parsing fails\n  parsedContent = {\n    story: 'Welcome to ' + $('Enrich Historical Context').item.json.place + '. ' + $('Enrich Historical Context').item.json.significance,\n    reasoning: $('Enrich Historical Context').item.json.cultural_relevance,\n    cultural_bridge: 'This location holds deep historical significance.',\n    historical_incident: 'Explore the rich heritage of this area.'\n  };\n}\n\nreturn [{\n  json: {\n    place: $('Enrich Historical Context').item.json.place,\n    story: parsedContent.story,\n    reasoning: parsedContent.reasoning,\n    cultural_bridge: parsedContent.cultural_bridge,\n    historical_incident: parsedContent.historical_incident,\n    trigger_type: $('Enrich Historical Context').item.json.trigger_type,\n    coordinates: {\n      lat: $('Location Tracker').item.json.body.latitude,\n      lng: $('Location Tracker').item.json.body.longitude\n    }\n  }\n}];"
+      },
+      "id": "ea6ff56b-8917-43d8-b321-e5d9011a6394",
+      "name": "Parse Gemini Response (Lite)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2720,
+        328
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each on\n// Get data from previous nodes safely\nconst place = $('Enrich Historical Context').item.json.place || 'Unknown Location';\nconst latitude = $('Location Tracker').item.json.body.latitude || '0';\nconst longitude = $('Location Tracker').item.json.body.longitude || '0';\nconst triggerType = $('Enrich Historical Context').item.json.trigger_type || 'location';\nconst significance = $('Enrich Historical Context').item.json.significance || 'Exploring the area';\nconst timeline = $('Enrich Historical Context').item.json.timeline || 'Modern era';\nconst culturalRelevance = $('Enrich Historical Context').item.json.cultural_relevance || 'Contemporary significance';\n\n// User profile\nconst userName = $('Get User Profile').first()?.json?.name || 'Guest';\nconst nationality = $('Get User Profile').first()?.json?.nationality || 'International';\nconst age = $('Get User Profile').first()?.json?.age || 'Adult';\nconst interests = $('Get User Profile').first()?.json?.interests || 'General History';\nconst language = $('Get User Profile').first()?.json?.language_preference || 'English';\n\n// Journey history\nlet journeyHistory = 'First location on journey';\ntry {\n  const historyArray = $('Get User Journey History').all();\n  if (historyArray.length > 0) {\n    journeyHistory = historyArray\n      .map(loc => `${loc.json.location_name} at ${loc.json.timestamp}`)\n      .join(', ');\n  }\n} catch (e) {\n  journeyHistory = 'First location on journey';\n}\n\n// Heritage data (safe stringify)\nlet heritageData = '{}';\ntry {\n  heritageData = JSON.stringify($('Enrich Historical Context').item.json.heritage_data || {});\n} catch (e) {\n  heritageData = '{}';\n}\n\n// Build prompt\nconst promptText = `You are ChronoPath AI, a Digital Ancestor guiding travelers through Pune's rich history.\n\nCURRENT CONTEXT:\nLocation: ${place}\nCoordinates: ${latitude}, ${longitude}\nTrigger Type: ${triggerType}\nHistorical Significance: ${significance}\nTimeline: ${timeline}\nCultural Relevance: ${culturalRelevance}\n\nUSER PROFILE:\nName: ${userName}\nNationality: ${nationality}\nAge: ${age}\nInterests: ${interests}\nLanguage: ${language}\n\nPREVIOUS JOURNEY:\n${journeyHistory}\n\nHERITAGE DATA:\n${heritageData}\n\nTASK:\nGenerate an immersive, personalized historical narrative.\n\nRespond ONLY in valid JSON:\n{\n  \"story\": \"...\",\n  \"reasoning\": \"...\",\n  \"cultural_bridge\": \"...\",\n  \"historical_incident\": \"...\"\n}\n\nAdapt storytelling to user's profile. Make it immersive and meaningful.`;\n\n// FINAL OUTPUT (VERY IMPORTANT — do NOT change this structure)\nreturn [\n  {\n    json: {\n      contents: [\n        {\n          parts: [\n            {\n              text: promptText\n            }\n          ]\n        }\n      ],\n      generationConfig: {\n        temperature: 0.8,\n        topK: 40,\n        topP: 0.95,\n        maxOutputTokens: 2048,\n        responseMimeType: \"application/json\"\n      }\n    }\n  }\n];\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1824,
+        664
+      ],
+      "id": "46e79fa8-fe43-43f0-95cf-53b37c95bb6c",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "id": "5e197aa7-6199-4653-a14a-f37754bca9b3",
+      "name": "Combine Media Content",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2720,
+        664
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "url",
+              "value": "={{ \"https://picsum.photos/800/600?random=\" + $now.toMillis() }}",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "description",
+              "value": "={{ \"Historical scene: \" + $json.story.substring(0, 100) }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "c0572e6f-2abb-41c4-b96e-eaa33efad076",
+      "name": "Generate Visual Content",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2496,
+        760
+      ]
+    }
+  ],
+  "pinData": {
+    "User Onboarding Form": [
+      {
+        "json": {
+          "name": "nnnnn",
+          "nationality": "Indian",
+          "age": 22,
+          "interests": [
+            "Independence Movement",
+            "Cultural Heritage"
+          ],
+          "language_preference": "English",
+          "submittedAt": "2026-04-15T18:52:51.936+05:30",
+          "formMode": "test"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "User Onboarding Form": {
+      "main": [
+        [
+          {
+            "node": "Prepare User Profile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare User Profile": {
+      "main": [
+        [
+          {
+            "node": "Store User Profile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Location Tracker": {
+      "main": [
+        [
+          {
+            "node": "Get User Profile",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Heritage Data",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get User Journey History",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get User Profile": {
+      "main": [
+        [
+          {
+            "node": "Merge Journey Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Heritage Data": {
+      "main": [
+        [
+          {
+            "node": "Check Heritage Data Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Location Log": {
+      "main": [
+        [
+          {
+            "node": "Store Location History",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send to Mobile App": {
+      "main": [
+        []
+      ]
+    },
+    "Check Heritage Data Success": {
+      "main": [
+        [
+          {
+            "node": "Geo-Intelligence Engine",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Empty Heritage Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Empty Heritage Data": {
+      "main": [
+        [
+          {
+            "node": "Geo-Intelligence Engine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Geo-Intelligence Engine": {
+      "main": [
+        [
+          {
+            "node": "Enrich Historical Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enrich Historical Context": {
+      "main": [
+        [
+          {
+            "node": "Merge Journey Context",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Get User Journey History": {
+      "main": [
+        [
+          {
+            "node": "Merge Journey Context",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Merge Journey Context": {
+      "main": [
+        [
+          {
+            "node": "Network Quality Check",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Network Quality Check": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Parse Gemini Response (Lite)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Story Generation": {
+      "main": [
+        [
+          {
+            "node": "Parse Gemini Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Gemini Response": {
+      "main": [
+        [
+          {
+            "node": "Generate Audio Narration (Gemini TTS)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Generate Visual Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Full Response": {
+      "main": [
+        [
+          {
+            "node": "Send to Mobile App",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Prepare Location Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Lite Response": {
+      "main": [
+        [
+          {
+            "node": "Send to Mobile App",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Prepare Location Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Audio Narration (Gemini TTS)": {
+      "main": [
+        [
+          {
+            "node": "Combine Media Content",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Parse Gemini Response (Lite)": {
+      "main": [
+        [
+          {
+            "node": "Format Lite Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Gemini Story Generation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combine Media Content": {
+      "main": [
+        [
+          {
+            "node": "Format Full Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Visual Content": {
+      "main": [
+        [
+          {
+            "node": "Combine Media Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "fe3e89c2-03fa-48c4-bf5e-83239e8014d1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ac46e8010cadd2e3c0f9d2ddd8575e0adae8b51fd87487b549f1f67ecbfba11a"
+  },
+  "id": "4G5t96EEABuYnlFE",
+  "tags": []
+}
